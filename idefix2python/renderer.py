@@ -217,9 +217,24 @@ class SliceRenderer:
             render_list = slice1_list if len(slice1_list) > 0 else self.vtkList
 
             if self.userArgs.doOnlyFrames:
-                render_list = [render_list[i] for i in self.userArgs.doOnlyFrames]
+                framenb_list = []
+                for frame_nb in self.userArgs.doOnlyFrames:
+                    if frame_nb < 0:
+                        framenb_list.append(len(render_list) + frame_nb)
+                    else:
+                        framenb_list.append(frame_nb)
+                render_args = zip(
+                    framenb_list, [render_list[i] for i in self.userArgs.doOnlyFrames]
+                )
+            elif self.userArgs.every:
+                framenb_list = list(
+                    range(0, len(render_list), self.userArgs.every)
+                )
+                render_args = zip(framenb_list, render_list)
+            else:
+                framenb_list = enumerate(render_list)
             with Pool(self.userArgs.jobs) as pool:
-                pool.starmap(self.render_Frame, enumerate(render_list))
+                pool.starmap(self.render_Frame, render_args)
 
             for figMovie in self.figsMovie:
                 self.render_movie(figMovie)
@@ -419,6 +434,7 @@ class SliceRenderer:
             raise NotImplementedError("only part here")
             return  # TODO some room for timevol.dat here
 
+        ax.set_ylim(*timeseries.bounds)
         ax.grid(alpha=GRID_OPACITY)
         self.do_timeline_stuff(figure, timeseries, frame_nb)
 
@@ -443,57 +459,73 @@ class SliceRenderer:
         if uids is None or len(uids) == 0:
             return
 
-        for ii, uid in enumerate(uids):
-            lw = 1
+        scatter = False
+        # scatter = True
+        if scatter and isinstance(back_qty, MapMovie2D):
+            points = part_qty.points[frame_nb, uids]
+            values = part_qty.values[frame_nb, uids]
             alpha = 1
-            if hasattr(part_qty, "labels") and ii < len(part_qty.labels):
-                label = part_qty.labels[ii]
-            else:
-                label = uid
-
-            # TODO Make this part applicable to any kwargs, not just color/label
-            if back_qty is not None and "color" in back_qty.parts_kwargs:
-                color = back_qty.parts_kwargs["color"]
-            elif hasattr(part_qty, "colors") and ii < len(part_qty.colors):
-                color = part_qty.colors[ii]
-            else:
-                color = parts_cmap(ii / max(1, len(uids) - 1))
-
-            if isinstance(back_qty, MapMovie2D):
-                points = part_qty.points[: frame_nb + 1, uid]
-                values = part_qty.values[: frame_nb + 1, uid]
-                alpha = 1
-                lw = 0.5
-                ax.scatter(
-                    points[-1],
-                    values[-1],
-                    color=color,
-                    marker="x",
-                    s=1,
-                    linewidths=0.3,
-                )
-            elif isinstance(back_qty, LineMovie1D):
-                points = np.asarray(part_qty.values)[: frame_nb + 1, uid]
-                values = 0 * points
-                ax.scatter(points[-1], 0, color=color, marker="x")
-            elif back_qty is None or isinstance(back_qty, SpaceTimeHeatmap):
-                points = self.processor.vtktimes  # pre_render doesn't initialize global partquantities so part_qty.points would be empty here
-                values = np.asarray(part_qty.values)[:, uid]
-                alpha = 1
-                lw = 1
-            else:
-                raise NotImplementedError(f"{back_qty} doesn't support particles")
-
-            ax.plot(
+            lw = 0.5
+            ax.scatter(
                 points,
                 values,
-                label=label,  # TODO Show this label. Later PR.
-                color=color,
-                lw=lw,
-                alpha=alpha,
-                marker="8",
-                markersize=0.2,
+                marker="x",
+                s=1,
+                linewidths=0.3,
             )
+
+        else:
+            for ii, uid in enumerate(uids):
+                lw = 1
+                alpha = 1
+                if hasattr(part_qty, "labels") and ii < len(part_qty.labels):
+                    label = part_qty.labels[ii]
+                else:
+                    label = uid
+
+                # TODO Make this part applicable to any kwargs, not just color/label
+                if back_qty is not None and "color" in back_qty.parts_kwargs:
+                    color = back_qty.parts_kwargs["color"]
+                elif hasattr(part_qty, "colors") and ii < len(part_qty.colors):
+                    color = part_qty.colors[ii]
+                else:
+                    color = parts_cmap(ii / max(1, len(uids) - 1))
+
+                if isinstance(back_qty, MapMovie2D):
+                    points = part_qty.points[: frame_nb + 1, uid]
+                    values = part_qty.values[: frame_nb + 1, uid]
+                    alpha = 1
+                    lw = 0.5
+                    ax.scatter(
+                        points[-1],
+                        values[-1],
+                        color=color,
+                        marker="x",
+                        s=1,
+                        linewidths=0.3,
+                    )
+                elif isinstance(back_qty, LineMovie1D):
+                    points = np.asarray(part_qty.values)[: frame_nb + 1, uid]
+                    values = 0 * points
+                    ax.scatter(points[-1], 0, color=color, marker="x")
+                elif back_qty is None or isinstance(back_qty, SpaceTimeHeatmap):
+                    points = self.processor.vtktimes  # pre_render doesn't initialize global partquantities so part_qty.points would be empty here
+                    values = np.asarray(part_qty.values)[:, uid]
+                    alpha = 1
+                    lw = 1
+                else:
+                    raise NotImplementedError(f"{back_qty} doesn't support particles")
+
+                ax.plot(
+                    points,
+                    values,
+                    label=label,  # TODO Show this label. Later PR.
+                    color=color,
+                    lw=lw,
+                    alpha=alpha,
+                    marker="8",
+                    markersize=0.2,
+                )
 
         if len(part_qty.pointsRef) > 0:
             ax.plot(
