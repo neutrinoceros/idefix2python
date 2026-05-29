@@ -64,8 +64,6 @@ class FramesPaths:
         self.context = context
 
         self.userargsinfos = []
-        if userArgs.zoom:
-            self.userargsinfos += [f"zoom{userArgs.zoom}"]
         if userArgs.noBounds:
             self.userargsinfos += ["unbounded"]
         elif context.configPath is not None:
@@ -282,9 +280,6 @@ class SliceRenderer:
             else:
                 png_path = self.framesPaths.get_timeline_path(figure.name)
 
-            if self.userArgs.zoom:
-                figure.fig.patch.set_linewidth(10)
-                figure.fig.patch.set_edgecolor("cornflowerblue")
             figure.save_and_close(png_path)
 
     def _draw_streamlines(self, figure, qtyInfo, data):
@@ -594,7 +589,7 @@ class SliceRenderer:
                 figure, qtyInfo, data_mesh, cbar
             )  # support for Spacetimeheatmap? later PR.
 
-        if self.userArgs.zoom and isinstance(qtyInfo, MapMovie2D):
+        if "zoom" in self.options and isinstance(qtyInfo, MapMovie2D):
             ax.contourf(
                 grid1,
                 grid2,

@@ -46,7 +46,6 @@ One can also plot a particle quantity over a spacetime heatmap or a 2D movie wit
 | Option | Argument | Description |
 | :--- | :--- | :--- |
 | `-j`, `--jobs` | `int` | Number of CPUs for parallel rendering (Default: 1). |
-| `-z`, `--zoom` | `float` | Crops the plots to a specific radius ($r < \mathrm{zoom}$). |
 | `-f`, `--frame` | `int...` | Renders only specific frame indices (e.g., `-f 0 10 -1`). |
 | `--no-bounds` | Flag | Ignores `config.json`. User expects colobar to be different at each frame and to match local data. |
 | `-om` | Flag | Only movie: Skips everything and only renders the movie on existing frames. |
@@ -82,12 +81,10 @@ The three others are not accessible to the user:
 
 ## Roadmap to v1.0 (!!)
 
-* More flexibility on plot parameters (linestyle, color, etc...) (ongoing)
-* `compute` should take both globalvtk and partvtk argument to compute mixed quantities. (ongoing)
+* Better zoom API (ongoing)
 * Automatic labeling (already partially supported through `config.json` file.)
 * Reintroduce `timevol.dat` (timevol) for global quantities.
 * twinx
-* Better zoom API
 
 ### Known issues
 * `-f -1` doesn't show particles trajectories

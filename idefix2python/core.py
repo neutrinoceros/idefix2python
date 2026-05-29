@@ -19,7 +19,6 @@ class Pipeline:
         self,
         Context,
         figs,
-        zoom=0,
         streamLines=None,
         **options,
     ):
@@ -29,12 +28,11 @@ class Pipeline:
         :type Context: RunContext
         :param figs: `Figure` instances.
         :type figs: list[Figure]
-        :param zoom: Zoom level for the rendering view (for 2D only currently).
-        :type zoom: float, optional
         :param streamLines: Configuration for streamlines overlays.
         :type streamLines: StreamlineConfig, optional
         **options: Additional optional parameters:
             * scatter_particles (bool): only scatter particles positions instead of the whole trajectory on MapMovie2D
+            * zoom (callable): Zoom level for the rendering view (for 2D only currently). For example, `zoom(x1,x2): return x1, x2<np.pi/2`.
         """
         self.context = Context
         self.userArgs = self.context.userArgs

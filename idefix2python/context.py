@@ -35,16 +35,6 @@ def _get_args():
     )
 
     parser.add_argument(
-        "-z",
-        "--zoom",
-        nargs="?",
-        const=0,
-        default=0,
-        help="float: will only render r < zoom",
-        type=float,
-    )
-
-    parser.add_argument(
         "--no-bounds",
         action="store_true",
         dest="noBounds",
@@ -225,7 +215,7 @@ class RunContext:
         self._setup_directories()
         self._check_data()
 
-        self.gridInfo = GridInfo(self, self.userArgs.zoom)
+        self.gridInfo = GridInfo(self)
 
     def _setup_directories(self):
         self.frameRootFolder = self.projectPath / "frames" / self.frameFolderName
@@ -367,7 +357,7 @@ class RunContext:
 
 
 class GridInfo:
-    def __init__(self, context, zoom=None):
+    def __init__(self, context):
         self.context = context
         self.geometry = context.geometry
         self.dimensions = context.dimensions
@@ -387,18 +377,10 @@ class GridInfo:
                     self.X1, self.X2, self.context.geometry
                 )
 
-                if not zoom:
-                    self.mask = np.full(self.grid1.shape, True, dtype=bool)
-                    # )  # TODO hard coded, will be removed in later PR
-                else:
-                    self.mask = (
-                        (self.grid1 < zoom) & (np.abs(self.grid2) < zoom)
-                        # & (np.abs(np.pi / 2 - self.Theta) > np.pi / 12)
-                    )
                 self.xmin = 0  # works good atm
-                self.xmax = np.max(np.where(self.mask, self.grid1, 0))
-                self.ymax = np.max(np.where(self.mask, self.grid2, 0))
-                self.ymin = np.min(np.where(self.mask, self.grid2, 0))
+                self.xmax = np.max(self.grid1)
+                self.ymax = np.max(self.grid2)
+                self.ymin = np.min(self.grid2)
 
                 self.shape = np.shape(self.X1)
 
