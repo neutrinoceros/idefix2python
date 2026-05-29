@@ -116,8 +116,12 @@ class SliceRenderer:
         else:
             self.doMovie = True
 
-    def set_infos(self, gridInfo, partsInfo):
-        self.gridInfo = gridInfo
+        self.gridInfo = self.context.gridInfo
+        self.gridInfo.apply_zoom(
+            options.get("zoom", None)
+        )  # initialize gridInfo.*_toshow
+
+    def set_infos(self, partsInfo):
         self.partsInfo = partsInfo
 
     def _pre_render(self):
@@ -283,6 +287,9 @@ class SliceRenderer:
             figure.save_and_close(png_path)
 
     def _draw_streamlines(self, figure, qtyInfo, data):
+        """
+        streamlines don't support zoom atm because the grid needs to be converted to cartesian coordinates.
+        """
         lw_streamline = 0.2
         density_streamline = [1, 2]
         arrowstyle_streamline = "->"
@@ -535,14 +542,17 @@ class SliceRenderer:
         if isinstance(qtyInfo, MapMovie2D):
             grid1 = self.gridInfo.grid1
             grid2 = self.gridInfo.grid2
-            data_mesh = data[qtyInfo.key]
+            print(np.shape(data[qtyInfo.key]))
+            print(np.shape(self.gridInfo.mask))
+            data_mesh = np.where(self.gridInfo.mask, data[qtyInfo.key], np.nan)
+            # print(data_mesh)
 
         elif isinstance(qtyInfo, SpaceTimeHeatmap):
             grid1, grid2 = np.meshgrid(
                 np.asarray(self.processor.vtktimes),
                 np.asarray(self.gridInfo.X1Line),
             )
-            data_mesh = np.transpose(qtyInfo.values)
+            data_mesh = np.transpose(qtyInfo.values)[self.gridInfo.mask1]
         vmin, vmax = qtyInfo.bounds
         if vmin is None or self.userArgs.noBounds:
             vmin = np.nanmin(data_mesh)

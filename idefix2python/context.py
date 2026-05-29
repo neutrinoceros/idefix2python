@@ -189,6 +189,7 @@ class RunContext:
         configPath = kwargs.get("configPath", None)
         self.configPath = configPath
         if configPath is not None:
+            LOG(f"config.json file requested: {configPath}")
             self.config = tools.process_configs(configPath)
 
         self.dataPath = self.projectPath / "outputs" / runName
@@ -412,3 +413,23 @@ class GridInfo:
                 Lines[i] = tools.get_Position(vtk, self.context.geometry, dir)
 
         return Lines
+
+    def apply_zoom(self, zoom):
+        if zoom is None:
+            self.grid1_toshow, self.grid2_toshow = self.grid1, self.grid2
+            self.X1Line_toshow, self.X2Line_toshow = self.X1Line, self.X2Line
+            self.mask1 = np.full(self.X1Line.shape, True, dtype=bool)
+            self.mask2 = np.full(self.X2Line.shape, True, dtype=bool)
+        else:
+            print(np.shape(self.X1Line), np.shape(self.X2Line))
+            self.mask1, self.mask2 = zoom(self.X1Line, self.X2Line)
+            self.X1Line_toshow = self.X1Line[self.mask1]
+            self.X2Line_toshow = self.X2Line[self.mask2]
+            self.grid1_toshow, self.grid2_toshow = np.meshgrid(
+                self.X1Line_toshow, self.X2Line_toshow
+            )
+        # self.mask, _ = np.meshgrid(self.mask1, self.mask2)
+        self.mask = np.logical_and.outer(self.mask2, self.mask1)
+        print("hey", self.mask1)
+        print("hey", self.mask2)
+        print("hey", self.mask)

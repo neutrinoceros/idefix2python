@@ -10,8 +10,6 @@ class PhysicsProcessor:
         self.userArgs = userArgs
         self.streamLines = streamLines
 
-        self.gridInfo = self.context.gridInfo
-
     def set_qty_tocompute(self, qty_tocompute):
         self.qty_tocompute = qty_tocompute
 

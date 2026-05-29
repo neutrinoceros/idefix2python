@@ -135,7 +135,6 @@ class Pipeline:
         """
         Pray.
         """
-
         self.renderer = SliceRenderer(
             self.context,
             self.processor,
@@ -250,7 +249,7 @@ class Pipeline:
                 )
 
         # delegate the render of all this stuff to the Renderer
-        self.renderer.set_infos(self.processor.gridInfo, self.processor.partsInfo)
+        self.renderer.set_infos(self.processor.partsInfo)
         self.renderer.render()
 
     def _name_frames(self):
@@ -269,7 +268,6 @@ class Pipeline:
         self.all_movies = all_movies
         config = self.context.config
 
-        LOG(f"config.json file requested: {config}")
         remaining_fields_tobound = set()
 
         if not self.userArgs.noBounds:
