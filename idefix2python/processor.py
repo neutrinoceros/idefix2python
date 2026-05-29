@@ -32,9 +32,6 @@ class PhysicsProcessor:
             for qt in datavtk.data:
                 if self.context.dimensions == 2:
                     datavtk.data[qt] = np.transpose(np.squeeze(datavtk.data[qt]))
-                    datavtk.data[qt] = np.where(
-                        self.gridInfo.mask, datavtk.data[qt], np.nan
-                    )
 
                 elif (
                     self.context.dimensions == 1
